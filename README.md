@@ -2,7 +2,7 @@
 
 Version 2.0.0
 
-This bash script lets you install any WordPress version in the [Local by Flywheel](https://local.getflywheel.com/) app. (without getting PHP errors)
+This bash script lets you install [any WordPress version](https://wordpress.org/download/release-archive/) in the [Local by Flywheel](https://local.getflywheel.com/) app (without PHP errors or warnings)
 
 Features:
 
@@ -10,7 +10,7 @@ Features:
 * WP-CLI is used to install WP versions > 3.5.2
 * Older WP versions are installed by this script.
 * Fatal errors are removed by hacking WP core files for WP versions < 2.0
-* Errors are hidden by setting error_reporting off in:
+* PHP errors and warnings are hidden by setting error_reporting off in:
     * wp-config.php (WP < 3.5.2)
     * wp-settings.php (WP < 3.0.0)
 
