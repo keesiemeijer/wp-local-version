@@ -29,9 +29,10 @@
 #
 # To sync the wp-content folder between installations rsync is required..
 # If it's not installed already, right click the site and choose Open Site SSH.
-# Go to the /app folder
-#  	cd /app
-#
+# 
+# Update packages
+#   apt-get update
+# 
 # Install rsync
 #   apt-get install -y rsync
 #
@@ -96,18 +97,19 @@
 readonly DOMAIN="yourwebsite.local"
 
 
-# WordPress version to be installed. Default: latest version
+# WordPress default version to be installed. Default: "latest"
 # See the release archive: https://wordpress.org/download/release-archive/
 #
 # Use a version number or "latest"
 WP_VERSION="latest"
 
 # Remove errors. Default true
-readonly REMOVE_ERRORS=false
+readonly REMOVE_ERRORS=true
 
 # Keep the current wp-content folder for this website
+# 
 # If set to false you loose everything you changed in the wp-content folder
-readonly KEEP_WP_CONTENT=false
+readonly KEEP_WP_CONTENT=true
 
 # Database credentials
 readonly DB_NAME="wp-local-version"
@@ -151,9 +153,19 @@ printf "\nStart Setup '%s'...\n" "$DOMAIN"
 
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
 
-	# apt-get install -y wget subversion curl rsync
-	# Check if rsync is installed
-	command -v rsync >/dev/null 2>&1 || { echo "Abort script. Please install rsync if you want to keep the wp-content directory from being removed (when updating a WP version)." >&2; exit 1; }
+	if ! command -v rsync &> /dev/null; then
+		printf "Aborting script ...\n"
+		printf "Please install rsync first\n"
+		exit 1;
+	fi
+else
+
+	printf "The wp-content folder is also deleted when installing WordPress. \n"
+	read -p "Do you want to proceed  [y/n]" -r
+	if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
+		printf "Stopped installing WordPress core\n"
+		exit 0
+	fi
 fi
 
 
@@ -195,10 +207,10 @@ cd "$INSTALL_PATH" || exit
 # =============================================================================
 printf "Checking network connection...\n"
 if ping -c 3 --linger=5 8.8.8.8 >> /dev/null 2>&1; then
-	printf "Network connection detected...\n"
+	printf "Network connection detected.\n"
 	printf "Downloading WordPress %s in %s...\n" "$WP_VERSION" "$INSTALL_PATH"
 else
-	printf "No network connection detected. ...\n"
+	printf "No network connection detected.\n"
 	printf "Trying to get WordPress %s from cache...\n" "$WP_VERSION"
 fi
 
@@ -215,8 +227,8 @@ fi
 
 # Check if WordPress was downloaded
 if ! is_file "$INSTALL_PATH/wp-config-sample.php"; then
-	printf "Could not install WordPress. ...\n"
-	printf "Make sure you are connected to the internet. ...\n"
+	printf "Could not install WordPress.\n"
+	printf "Make sure you are connected to the internet.\n"
 	exit
 fi
 
@@ -295,8 +307,8 @@ fi
 
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
 	if is_dir "$INSTALL_PATH/wp-content" && is_dir "$CURRENT_PATH/tmp-wp-content"; then
-		printf "synchronizing wp-content directory. ...\n"
-		rsync --ignore-times -r "$CURRENT_PATH/tmp-wp-content/" "$INSTALL_PATH/wp-content"
+		printf "synchronizing wp-content directory...\n"
+		rsync --ignore-times -r "$CURRENT_PATH/tmp-wp-content/" "$INSTALL_PATH/wp-content" && rm -rf "$CURRENT_PATH/tmp-wp-content/"
 	fi
 fi
 
