@@ -2,7 +2,7 @@
 
 Version 2.0.0
 
-This bash script lets you install any WordPress version in the [Local by Flywheel](https://local.getflywheel.com/) (without getting PHP errors) app.
+This bash script lets you install any WordPress version in the [Local by Flywheel](https://local.getflywheel.com/) app. (without getting PHP errors)
 
 Features:
 
