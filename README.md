@@ -44,14 +44,14 @@ To install this script go to the website's /app folder
 cd path/to/local/website/app
 ```
 
-And download this script
+Download this script
 ```bash
 curl -o wp-local-version.sh https://raw.githubusercontent.com/keesiemeijer/wp-local-version/master/wp-local-version.sh
 ```
 
-Finally, edit the variables in this script to match your site.
+And edit the variables in this script to match your site.
 
-**Note** It's important to edit the `DOMAIN` variable otherwise you can't visit the site after installing a new WP version.
+**Note** It's important to at least edit the `DOMAIN` variable otherwise you can't visit the site after installing a new WP version.
 
 ```bash
 # =============================================================================
@@ -99,15 +99,16 @@ readonly WP_PASS="password"
 
 **WARNING**: The database and WordPress directory (except `wp-content`) are **deleted** prior to installing a new version. If there are files outside of the `wp-content` folder you want to keep, you'll need to back them up before installing a new WP version with this script.
 
-To install a new WP version follow the following steps
-1 - Right click the site and choose Open Site SSH.
-2 - Go to the /app folder
+To install a new WP version follow these steps
+
+1 - Right click the site and choose Open Site SSH.  
+2 - Go to the `/app` folder
 
 ```bash
 cd /app
 ```
 
-3 Install a new WP version. (Without a version number the latest WP version is installed)
+3 - Install a new WP version. (Without a version number the latest WP version is installed)
 
 ```bash
 bash wp-local-version.sh 4.4
