@@ -27,7 +27,7 @@ You can set the PHP version in the Local app
 
 * rsync
 
-To sync the wp-content folder between installations rsync is required. If it's not installed already, right click the site and choose Open Site SSH.
+To sync the `wp-content` folder between installations rsync is required. If it's not installed, right click the site name in the Local app and choose `Open Site SSH`.
 
 ```bash
 # Update packages
@@ -49,7 +49,7 @@ Download this script
 curl -o wp-local-version.sh https://raw.githubusercontent.com/keesiemeijer/wp-local-version/master/wp-local-version.sh
 ```
 
-And edit the variables in this script to match your site.
+And edit the variables in the `wp-local-version.sh` script to match your site.
 
 **Note** It's important to at least edit the `DOMAIN` variable otherwise you can't visit the site after installing a new WP version.
 
@@ -101,7 +101,7 @@ readonly WP_PASS="password"
 
 To install a new WP version follow these steps
 
-1 - Right click the site and choose Open Site SSH.  
+1 - Right click the site name in Local and choose `Open Site SSH`.  
 2 - Go to the `/app` folder
 
 ```bash
