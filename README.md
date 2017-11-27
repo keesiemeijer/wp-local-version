@@ -2,7 +2,7 @@
 
 Version 2.0.0
 
-This bash script lets you install any WordPress version in the Local by Freewheel app (without getting PHP errors).
+This bash script lets you install any WordPress version in the [Local by Flywheel](https://local.getflywheel.com/) (without getting PHP errors) app.
 
 Features:
 
@@ -101,7 +101,7 @@ readonly WP_PASS="password"
 
 To install a new WP version follow these steps
 
-1 - Right click the site name in Local and choose `Open Site SSH`.  
+1 - Right click the site name in the Local app and choose `Open Site SSH`.  
 2 - Go to the `/app` folder
 
 ```bash
