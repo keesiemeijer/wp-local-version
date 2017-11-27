@@ -8,7 +8,7 @@
 # By keesiemeijer
 # https://github.com/keesiemeijer/wp-local-version
 #
-# This bash script lets you install any WordPress version in the Local by Freewheel app (without getting PHP errors).
+# This bash script lets you install any WordPress version in the Local by Flywheel app (without getting PHP errors).
 #
 # ********* Features *********
 #
