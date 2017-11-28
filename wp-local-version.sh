@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 # =============================================================================
 # WP Local Version
 #
@@ -20,7 +21,7 @@
 #
 # WordPress is not compatible with all PHP versions (in the Local app).
 # Here's an overview of what PHP version you'll have to use for WordPress to be installed successfully.
-#     WordPress < 4.7 needs PHP 5.6 or lower (or you get a warning)
+#     WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)
 #     WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error)
 #
 # ********* Requirements *********
@@ -89,6 +90,7 @@
 
 # =============================================================================
 # Variables
+# Edit these variables to match your site.
 #
 # Note: Don't use spaces around the equal sign when editing variables below.
 # =============================================================================
@@ -96,29 +98,31 @@
 # Domain name
 readonly DOMAIN="yourwebsite.local"
 
+# Database credentials
+readonly DB_NAME="local"
+readonly DB_USER="root"
+readonly DB_PASS="root"
+
+# Wordpress credentials
+readonly WP_USER="admin"
+readonly WP_PASS="password"
+
+# Remove errors. Default true
+readonly REMOVE_ERRORS=true
+
+# Keep the current wp-content folder for this website when installing a new WP version.
+# 
+# If set to false you loose everything you've changed in the wp-content folder
+readonly KEEP_WP_CONTENT=true
+
+# Locale of WordPress install. Default empty string (en_US locale)
+readonly LOCALE=''
 
 # WordPress default version to be installed. Default: "latest"
 # See the release archive: https://wordpress.org/download/release-archive/
 #
 # Use a version number or "latest"
 WP_VERSION="latest"
-
-# Remove errors. Default true
-readonly REMOVE_ERRORS=true
-
-# Keep the current wp-content folder for this website
-# 
-# If set to false you loose everything you changed in the wp-content folder
-readonly KEEP_WP_CONTENT=true
-
-# Database credentials
-readonly DB_NAME="wp-local-version"
-readonly DB_USER="wp"
-readonly DB_PASS="wp"
-
-# Wordpress credentials
-readonly WP_USER="admin"
-readonly WP_PASS="password"
 
 # =============================================================================
 #
@@ -135,6 +139,8 @@ readonly CURRENT_DIR="${PWD##*/}"
 # path to the WordPress install for the developer reference website
 readonly INSTALL_PATH="$CURRENT_PATH/public"
 
+readonly TEMP_DIR="/tmp/wp-local-version"
+
 if [ $# == 1 ]; then
 	WP_VERSION=$1
 fi
@@ -149,54 +155,31 @@ function is_dir() {
 	[[ -d $dir ]]
 }
 
-printf "\nStart Setup '%s'...\n" "$DOMAIN"
-
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
-
+	# Check if rsync exists
 	if ! command -v rsync &> /dev/null; then
 		printf "Aborting script ...\n"
 		printf "Please install rsync first\n"
 		exit 1;
 	fi
+fi
+
+printf "These steps are taken before installing a new WordPress version.\n"
+printf "\tThe current database '%s' will be deleted. \n" "$DB_NAME"
+
+if [[ "$KEEP_WP_CONTENT" = true ]]; then
+	printf "\tAll files and directories in %s, except the wp-content directory, will be deleted.\n" "$INSTALL_PATH"
 else
-
-	printf "The wp-content folder is also deleted when installing WordPress. \n"
-	read -p "Do you want to proceed  [y/n]" -r
-	if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
-		printf "Stopped installing WordPress core\n"
-		exit 0
-	fi
+	printf "The directory %s will be deleted before installing WordPress. \n" "$INSTALL_PATH"
 fi
 
-
-# =============================================================================
-# Creating database and 'public' directory
-# =============================================================================
-
-printf "Resetting database '%s'...\n" "$DB_NAME"
-mysql -u root --password=root -e "DROP DATABASE IF EXISTS \`$DB_NAME\`" 2>/dev/null
-mysql -u root --password=root -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`" 2>/dev/null
-mysql -u root --password=root -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO $DB_USER@localhost IDENTIFIED BY '$DB_PASS';" 2>/dev/null
-
-
-printf "Creating directory %s...\n" "$INSTALL_PATH"
-if ! is_dir "$INSTALL_PATH"; then
-	mkdir "$INSTALL_PATH"
-else 
-	if is_dir "$INSTALL_PATH/wp-content" && [[ "$KEEP_WP_CONTENT" = true ]]; then
-		printf "Backing up wp-content directory in  %s...\n" "$CURRENT_PATH/tmp-wp-content"
-		if is_dir "$CURRENT_PATH/tmp-wp-content"; then
-			rm -rf "$CURRENT_PATH/tmp-wp-content"
-			mv "$INSTALL_PATH/wp-content" "$CURRENT_PATH/tmp-wp-content"
-		else
-			cp -rf "$INSTALL_PATH/wp-content" "$CURRENT_PATH/tmp-wp-content"
-		fi
-	fi
-	rm -rf "$INSTALL_PATH"
-	mkdir "$INSTALL_PATH"
+read -p "Do you want to proceed  [y/n]" -r
+if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
+	printf "Stopped installing a new WordPress version\n"
+	exit 0
 fi
 
-cd "$INSTALL_PATH" || exit
+printf "\nStart installing a new Wordpress version for '%s'...\n" "$DOMAIN"
 
 # =============================================================================
 # Check Network Detection
@@ -208,29 +191,74 @@ cd "$INSTALL_PATH" || exit
 printf "Checking network connection...\n"
 if ping -c 3 --linger=5 8.8.8.8 >> /dev/null 2>&1; then
 	printf "Network connection detected.\n"
-	printf "Downloading WordPress %s in %s...\n" "$WP_VERSION" "$INSTALL_PATH"
+	printf "Downloading WordPress %s in %s...\n" "$WP_VERSION" "$TEMP_DIR/wordpress"
 else
 	printf "No network connection detected.\n"
 	printf "Trying to get WordPress %s from cache...\n" "$WP_VERSION"
 fi
 
-if [[ "$WP_VERSION" = "latest" ]]; then
-	wp core download --allow-root --force 2> /dev/null
-	if is_file "$INSTALL_PATH/wp-includes/version.php"; then
-		if grep -q "wp_version = " "$INSTALL_PATH/wp-includes/version.php"; then
-			WP_VERSION=$(grep "wp_version = " "$INSTALL_PATH/wp-includes/version.php"|awk -F\' '{print $2}')
-		fi
-	fi
+if is_dir "$TEMP_DIR"; then
+	rm -rf "$TEMP_DIR";
+fi
+
+mkdir "$TEMP_DIR"
+mkdir "$TEMP_DIR/wordpress"
+
+if ! [[ -z "${LOCALE// }" ]]; then
+	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --locale="${LOCALE// }" --force --allow-root 2> /dev/null
 else
-	wp core download --version="$WP_VERSION" --force --allow-root 2> /dev/null
+	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --force --allow-root 2> /dev/null
 fi
 
 # Check if WordPress was downloaded
-if ! is_file "$INSTALL_PATH/wp-config-sample.php"; then
+if ! is_file "$TEMP_DIR/wordpress/wp-config-sample.php"; then
 	printf "Could not install WordPress.\n"
-	printf "Make sure you are connected to the internet.\n"
-	exit
+	printf "Use a valid WordPress version.\n"
+	printf "And make sure you are connected to the internet.\n"
+	rm -rf "$TEMP_DIR"
+	exit 1
 fi
+
+if [[ "$WP_VERSION" = "latest" ]]; then
+	if is_file "$TEMP_DIR/wordpress/wp-includes/version.php"; then
+		if grep -q "wp_version = " "$TEMP_DIR/wordpress/wp-includes/version.php"; then
+			WP_VERSION=$(grep "wp_version = " "$TEMP_DIR/wordpress/wp-includes/version.php"|awk -F\' '{print $2}')
+		fi
+	fi
+fi
+
+# =============================================================================
+# Backing up the wp-content folder and removing the public folder
+# =============================================================================
+
+if ! is_dir "$INSTALL_PATH"; then
+	printf "Creating directory %s...\n" "$INSTALL_PATH"
+	mkdir "$INSTALL_PATH"
+else 
+	if is_dir "$INSTALL_PATH/wp-content" && [[ "$KEEP_WP_CONTENT" = true ]]; then
+		printf "Backing up wp-content directory in  %s\n" "$TEMP_DIR/wp-content"
+		printf "This can take some time...\n"
+		if is_dir "$TEMP_DIR/wp-content"; then
+			rm -rf "$TEMP_DIR/wp-content"
+			mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content"
+		else
+			cp -rf "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content"
+		fi
+	fi
+	printf "Deleting directory %s...\n" "$INSTALL_PATH"
+	rm -rf "$INSTALL_PATH"
+	mkdir "$INSTALL_PATH"
+fi
+
+cd "$INSTALL_PATH" || exit
+
+printf "Moving WordPress files to %s...\n" "$INSTALL_PATH"
+mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH"
+
+printf "Resetting database '%s'...\n" "$DB_NAME"
+mysql -u root --password=root -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
+mysql -u root --password=root -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`"
+mysql -u root --password=root -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO $DB_USER@localhost IDENTIFIED BY '$DB_PASS';"
 
 readonly TITLE="Wordpress $WP_VERSION"
 readonly WP_VERSION="$WP_VERSION"
@@ -238,6 +266,7 @@ readonly WP_VERSION="$WP_VERSION"
 # =============================================================================
 # Installing WordPress
 # =============================================================================
+printf "Installing WordPress version %s in %s ...\n" "$WP_VERSION" "$INSTALL_PATH"
 
 finished=''
 config_error=$(wp core config --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_PASS --allow-root 2>&1 >/dev/null)
@@ -306,9 +335,10 @@ else
 fi
 
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
-	if is_dir "$INSTALL_PATH/wp-content" && is_dir "$CURRENT_PATH/tmp-wp-content"; then
-		printf "synchronizing wp-content directory...\n"
-		rsync --ignore-times -r "$CURRENT_PATH/tmp-wp-content/" "$INSTALL_PATH/wp-content" && rm -rf "$CURRENT_PATH/tmp-wp-content/"
+	if is_dir "$INSTALL_PATH/wp-content" && is_dir "$TEMP_DIR/wp-content"; then
+		printf "synchronizing wp-content directory\n"
+		printf "This can take some time...\n"
+		rsync --ignore-times -r "$TEMP_DIR/wp-content/" "$INSTALL_PATH/wp-content" && rm -rf "$TEMP_DIR/wp-content"
 	fi
 fi
 
@@ -354,6 +384,6 @@ if [[ "$REMOVE_ERRORS" = true && "$config_error" ]]; then
 	fi
 fi
 
-printf "\nFinished Setup %s with version: %s!\n" "$DOMAIN" "$WP_VERSION"
+printf "\nFinished installing WordPress %s in: %s\n" "$WP_VERSION" "$INSTALL_PATH"
 echo "$finished"
 echo ""

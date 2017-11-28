@@ -18,7 +18,7 @@ Features:
 
 WordPress is not compatible with all PHP versions (in the Local app). Here's an overview of what PHP version you'll have to use for WordPress to be installed successfully.
 
-* WordPress < 4.7 needs PHP 5.6 or lower (or you get a warning)
+* WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)(Will be fixed in WP)
 * WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error)
 
 You can set the PHP version in the Local app
@@ -51,7 +51,7 @@ curl -o wp-local-version.sh https://raw.githubusercontent.com/keesiemeijer/wp-lo
 
 And edit the variables in the `wp-local-version.sh` script to match your site.
 
-**Note** It's important to at least edit the `DOMAIN` variable otherwise you can't visit the site after installing a new WP version.
+**Note** It's important to edit the `DOMAIN` and database variable otherwise you can't visit the site after installing a new WP version.
 
 ```bash
 # =============================================================================
@@ -64,11 +64,14 @@ And edit the variables in the `wp-local-version.sh` script to match your site.
 # Domain name
 readonly DOMAIN="yourwebsite.local"
 
-# WordPress default version to be installed. Default: "latest"
-# See the release archive: https://wordpress.org/download/release-archive/
-#
-# Use a version number or "latest"
-WP_VERSION="latest"
+# Database credentials
+readonly DB_NAME="local"
+readonly DB_USER="root"
+readonly DB_PASS="root"
+
+# Wordpress credentials
+readonly WP_USER="admin"
+readonly WP_PASS="password"
 
 # Remove errors. Default true
 readonly REMOVE_ERRORS=true
@@ -78,14 +81,14 @@ readonly REMOVE_ERRORS=true
 # If set to false you loose everything you've changed in the wp-content folder
 readonly KEEP_WP_CONTENT=true
 
-# Database credentials
-readonly DB_NAME="wp-local-version"
-readonly DB_USER="wp"
-readonly DB_PASS="wp"
+# Locale of WordPress install. Default empty string (en_US locale)
+readonly LOCALE=''
 
-# Wordpress credentials
-readonly WP_USER="admin"
-readonly WP_PASS="password"
+# WordPress default version to be installed. Default: "latest"
+# See the release archive: https://wordpress.org/download/release-archive/
+#
+# Use a version number or "latest"
+WP_VERSION="latest"
 
 # =============================================================================
 #
