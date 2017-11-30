@@ -6,6 +6,8 @@ A bash script to install [any WordPress version](https://wordpress.org/download/
 
 This is a converted version for the Local app of the VVV auto site script [WP Nostalgia](https://github.com/keesiemeijer/wp-nostalgia).
 
+**Note**: Keep in mind this script is intended to create fresh new WordPress installs, not to update websites. (You can use [WP-CLI](http://wp-cli.org/) for that).
+
 Features:
 
 * Ability to keep the `wp-content` folder between versions.
@@ -17,6 +19,8 @@ Features:
         * wp-config.php (WP < 3.5.2)
         * wp-settings.php (WP < 3.0.0)
 
+**Note**: Don't use this script for production sites.
+
 ## PHP compatibility
 Not all errors can be fixed (by a script) for the earlier WP versions on newer PHP environments. You have to pay attention what version of PHP is used with the WP version you install. Here's an overview of what PHP versions you can use to install WordPress successfully with this script.
 
@@ -24,11 +28,13 @@ Not all errors can be fixed (by a script) for the earlier WP versions on newer P
 * WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error)(missing MySQL extension)
 
 If you don't want this script to fix PHP errors set the `REMOVE_ERRORS` [variable](#variables) in this script to false.
+
+You can set the PHP version in the Local app.
 ## Requirements
 
 * rsync
 
-To sync the `wp-content` folder between installations rsync is required. If it's not installed, right click the site name in the Local app and choose `Open Site SSH`.
+To sync the `wp-content` folder between installations rsync is required. If it's not installed, right click the site name in the Local app and choose `Open Site SSH`. A new terminal window will open where you can install it.
 
 ```bash
 # Update packages
@@ -37,6 +43,10 @@ apt-get update
 # Install rsync
 apt-get install -y rsync
 ```
+## Your content
+The database and WordPress folder (`public`), ***except the `wp-content` folder***, are deleted before installing a new WP version. Make a backup for any files and directories you want to keep (outside of `wp-content`) before installing new WordPress versions.
+
+The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version and removed after. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
 
 ## Installation
 To install this script go to the website's /app folder
@@ -60,11 +70,13 @@ Change the variables in the `wp-local-version.sh` file to match your site before
 ```bash
 # =============================================================================
 # Variables
-# Edit these variables to match your site.
+# Edit the site variables to match your site.
 #
 # Note: Don't use spaces around the equal sign when editing variables below.
 # =============================================================================
 
+# ********* Site variables *********
+#
 # Domain name
 readonly DOMAIN="yourwebsite.local"
 
@@ -77,15 +89,23 @@ readonly DB_PASS="root"
 readonly WP_USER="admin"
 readonly WP_PASS="password"
 
+# ********* Script variables *********
+
 # Remove errors. Default true
 readonly REMOVE_ERRORS=true
 
 # Keep the current wp-content folder for this website when installing a new WP version.
 # 
-# If set to false you loose everything you've changed in the wp-content folder
+# If set to false, no backup is made and you lose everything you've changed in the wp-content folder.
 readonly KEEP_WP_CONTENT=true
 
-# Locale of WordPress install. Default empty string (en_US locale)
+# Keep the wp-content folder backup after successfully installing a new WordPress version.
+#
+# Set it to false to remove the backup after a new WP install.
+# (It is only removed if rsync returns with a successful exit status) 
+readonly KEEP_WP_CONTENT_BACKUP=false
+
+# Locale of the new WordPress install. Default empty string (en_US locale)
 readonly LOCALE=''
 
 # WordPress default version to be installed. Default: "latest"
@@ -104,7 +124,7 @@ WP_VERSION="latest"
 
 ## Installing a new WP Version
 
-**WARNING**: The database and WordPress directory (except `wp-content`) are **deleted** prior to installing a new version. If there are files outside of the `wp-content` folder you want to keep, you'll need to back them up before installing a new WP version with this script.
+**WARNING**: The database and WordPress directory (except `wp-content`) are **deleted** prior to installing a new version. See [why this is](#your-content).
 
 To install a new WP version follow these steps
 

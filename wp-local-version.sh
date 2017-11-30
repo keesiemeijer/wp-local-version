@@ -95,6 +95,8 @@
 # Note: Don't use spaces around the equal sign when editing variables below.
 # =============================================================================
 
+# ********* Site variables *********
+#
 # Domain name
 readonly DOMAIN="yourwebsite.local"
 
@@ -107,15 +109,23 @@ readonly DB_PASS="root"
 readonly WP_USER="admin"
 readonly WP_PASS="password"
 
+# ********* Script variables *********
+
 # Remove errors. Default true
 readonly REMOVE_ERRORS=true
 
 # Keep the current wp-content folder for this website when installing a new WP version.
 # 
-# If set to false you loose everything you've changed in the wp-content folder
+# If set to false, no backup is made and you lose everything you've changed in the wp-content folder.
 readonly KEEP_WP_CONTENT=true
 
-# Locale of WordPress install. Default empty string (en_US locale)
+# Keep the wp-content folder backup after successfully installing a new WordPress version.
+#
+# Set it to false to remove the backup after a new WP install.
+# (It is only removed if rsync returns with a successful exit status) 
+readonly KEEP_WP_CONTENT_BACKUP=false
+
+# Locale of the new WordPress install. Default empty string (en_US locale)
 readonly LOCALE=''
 
 # WordPress default version to be installed. Default: "latest"
@@ -197,12 +207,11 @@ else
 	printf "Trying to get WordPress %s from cache...\n" "$WP_VERSION"
 fi
 
-if is_dir "$TEMP_DIR"; then
-	rm -rf "$TEMP_DIR";
+if is_dir "$TEMP_DIR/wordpress"; then
+	rm -rf "$TEMP_DIR/wordpress";
 fi
 
-mkdir "$TEMP_DIR"
-mkdir "$TEMP_DIR/wordpress"
+mkdir -p "$TEMP_DIR/wordpress" || exit
 
 if ! [[ -z "${LOCALE// }" ]]; then
 	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --locale="${LOCALE// }" --force --allow-root 2> /dev/null
@@ -215,7 +224,7 @@ if ! is_file "$TEMP_DIR/wordpress/wp-config-sample.php"; then
 	printf "Could not install WordPress.\n"
 	printf "Use a valid WordPress version.\n"
 	printf "And make sure you are connected to the internet.\n"
-	rm -rf "$TEMP_DIR"
+	rm -rf "$TEMP_DIR/wordpress"
 	exit 1
 fi
 
@@ -236,7 +245,7 @@ if ! is_dir "$INSTALL_PATH"; then
 	mkdir "$INSTALL_PATH"
 else 
 	if is_dir "$INSTALL_PATH/wp-content" && [[ "$KEEP_WP_CONTENT" = true ]]; then
-		printf "Backing up wp-content directory in  %s\n" "$TEMP_DIR/wp-content"
+		printf "Backing up wp-content directory in %s\n" "$TEMP_DIR/wp-content"
 		printf "This can take some time...\n"
 		if is_dir "$TEMP_DIR/wp-content"; then
 			rm -rf "$TEMP_DIR/wp-content"
@@ -253,7 +262,10 @@ fi
 cd "$INSTALL_PATH" || exit
 
 printf "Moving WordPress files to %s...\n" "$INSTALL_PATH"
-mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH"
+mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || exit
+
+# Clean up temp WordPress directory
+rm -rf "$TEMP_DIR/wordpress";
 
 printf "Resetting database '%s'...\n" "$DB_NAME"
 mysql -u root --password=root -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
@@ -336,9 +348,15 @@ fi
 
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
 	if is_dir "$INSTALL_PATH/wp-content" && is_dir "$TEMP_DIR/wp-content"; then
-		printf "synchronizing wp-content directory\n"
-		printf "This can take some time...\n"
-		rsync --ignore-times -r "$TEMP_DIR/wp-content/" "$INSTALL_PATH/wp-content" && rm -rf "$TEMP_DIR/wp-content"
+		printf "Synchronizing the wp-content directory. This can take some time...\n"
+		if rsync --ignore-times -r "$TEMP_DIR/wp-content/" "$INSTALL_PATH/wp-content"; then
+
+			printf "Finished synchronizing.\n"
+			if [[ $KEEP_WP_CONTENT_BACKUP = false ]]; then
+				printf "Removing back up of wp-content directory in %s.\n" "$TEMP_DIR/wp-content"
+				rm -rf "$TEMP_DIR/wp-content"
+			fi
+		fi
 	fi
 fi
 
