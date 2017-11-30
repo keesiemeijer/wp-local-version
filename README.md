@@ -62,6 +62,27 @@ curl -o wp-local-version.sh https://raw.githubusercontent.com/keesiemeijer/wp-lo
 
 And **edit the variables** in the `wp-local-version.sh` script to match your site ([see below](#variables)).
 
+## Installing a new WP Version
+
+**WARNING**: The database and WordPress directory (except `wp-content`) are **deleted** prior to installing a new version. See [why this is](#your-content).
+
+To install a new WP version follow these steps
+
+1 - Right click the site name in the Local app and choose `Open Site SSH`.  
+2 - Go to the `/app` folder
+
+```bash
+cd /app
+```
+
+3 - Install a new WP version. (Without a version number the latest WP version is installed)
+
+```bash
+bash wp-local-version.sh 4.4
+```
+
+If all went well it shows a message with instructions how to finish the install.
+
 ## Variables
 Change the site variables in the `wp-local-version.sh` file to match your site before installing new WordPress versions with this script.
 
@@ -120,25 +141,3 @@ WP_VERSION="latest"
 #
 # =============================================================================
 ```
-
-
-## Installing a new WP Version
-
-**WARNING**: The database and WordPress directory (except `wp-content`) are **deleted** prior to installing a new version. See [why this is](#your-content).
-
-To install a new WP version follow these steps
-
-1 - Right click the site name in the Local app and choose `Open Site SSH`.  
-2 - Go to the `/app` folder
-
-```bash
-cd /app
-```
-
-3 - Install a new WP version. (Without a version number the latest WP version is installed)
-
-```bash
-bash wp-local-version.sh 4.4
-```
-
-If all went well it shows a message with instructions how to finish the install.
