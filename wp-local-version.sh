@@ -151,6 +151,8 @@ readonly INSTALL_PATH="$CURRENT_PATH/public"
 
 readonly TEMP_DIR="/tmp/wp-local-version"
 
+readonly ABORT="Stopped installing Wordpress"
+
 if [ $# == 1 ]; then
 	WP_VERSION=$1
 fi
@@ -168,7 +170,7 @@ function is_dir() {
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
 	# Check if rsync exists
 	if ! command -v rsync &> /dev/null; then
-		printf "Aborting script ...\n"
+		printf "%s...\n" "$ABORT"
 		printf "Please install rsync first\n"
 		exit 1;
 	fi
@@ -185,7 +187,7 @@ fi
 
 read -p "Do you want to proceed  [y/n]" -r
 if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
-	printf "Stopped installing a new WordPress version\n"
+	printf "%s\n" "$ABORT"
 	exit 0
 fi
 
@@ -249,20 +251,20 @@ else
 		printf "This can take some time...\n"
 		if is_dir "$TEMP_DIR/wp-content"; then
 			rm -rf "$TEMP_DIR/wp-content"
-			mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content"
-		else
-			cp -rf "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content"
 		fi
+
+		mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content" || { printf '%s: Could not move wp-content backup\n' "$ABORT"; exit 1; }
 	fi
+
 	printf "Deleting directory %s...\n" "$INSTALL_PATH"
-	rm -rf "$INSTALL_PATH"
+	rm -rf "$INSTALL_PATH" || { printf '%s: Could not delete %s\n' "$ABORT" "$INSTALL_PATH"; exit 1; }
 	mkdir "$INSTALL_PATH"
 fi
 
-cd "$INSTALL_PATH" || exit
+cd "$INSTALL_PATH" || { printf '%s: directory %s not created \n' "$ABORT" "$INSTALL_PATH"; exit 1; }
 
 printf "Moving WordPress files to %s...\n" "$INSTALL_PATH"
-mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || exit
+mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || { printf '%s: Could not move WP files to %s\n' "$ABORT" "$INSTALL_PATH"; exit 1; }
 
 # Clean up temp WordPress directory
 rm -rf "$TEMP_DIR/wordpress";
