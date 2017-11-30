@@ -2,27 +2,28 @@
 
 Version 2.0.0
 
-This bash script lets you install [any WordPress version](https://wordpress.org/download/release-archive/) in the [Local by Flywheel](https://local.getflywheel.com/) app (without PHP errors or warnings)
+A bash script to install [any WordPress version](https://wordpress.org/download/release-archive/) in the [Local by Flywheel](https://local.getflywheel.com/) app (without PHP errors or warnings)
+
+This is a converted version for the Local app of the VVV auto site script [WP Nostalgia](https://github.com/keesiemeijer/wp-nostalgia).
 
 Features:
 
 * Ability to keep the `wp-content` folder between versions.
 * WP-CLI is used to install WP versions > 3.5.2
-* Older WP versions are installed by this script.
-* Fatal errors are removed by hacking WP core files for WP versions < 2.0
-* PHP errors and warnings are hidden by setting error_reporting off in:
-    * wp-config.php (WP < 3.5.2)
-    * wp-settings.php (WP < 3.0.0)
+* All other WP versions are installed by this script.
+* To be able to install very early versions of WordPress this script fixes PHP errors by:
+    * Hacking WP core files for WP versions < 2.0
+    * Setting error_reporting off in:
+        * wp-config.php (WP < 3.5.2)
+        * wp-settings.php (WP < 3.0.0)
 
 ## PHP compatibility
-
-WordPress is not compatible with all PHP versions (in the Local app). Here's an overview of what PHP version you'll have to use for WordPress to be installed successfully.
+Not all errors can be fixed (by a script) for the earlier WP versions on newer PHP environments. You have to pay attention what version of PHP is used with the WP version you install. Here's an overview of what PHP versions you can use to install WordPress successfully with this script.
 
 * WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)(Will be fixed in WP)
-* WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error)
+* WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error)(missing MySQL extension)
 
-You can set the PHP version in the Local app
-
+If you don't want this script to fix PHP errors set the `REMOVE_ERRORS` [variable](#variables) in this script to false.
 ## Requirements
 
 * rsync
@@ -49,9 +50,12 @@ Download this script
 curl -o wp-local-version.sh https://raw.githubusercontent.com/keesiemeijer/wp-local-version/master/wp-local-version.sh
 ```
 
-And edit the variables in the `wp-local-version.sh` script to match your site.
+And **edit the variables** in the `wp-local-version.sh` script to match your site ([see below](#variables)).
 
-**Note** It's important to edit the `DOMAIN` and database variable otherwise you can't visit the site after installing a new WP version.
+## Variables
+Change the variables in the `wp-local-version.sh` file to match your site before installing new WordPress versions.
+
+**Note** It's important to edit the `DOMAIN` and `database` variables otherwise you probably can't visit the site after installing a new WP version.
 
 ```bash
 # =============================================================================
