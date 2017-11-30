@@ -2,18 +2,18 @@
 
 Version 2.0.0
 
-A bash script to install [any WordPress version](https://wordpress.org/download/release-archive/) in the [Local by Flywheel](https://local.getflywheel.com/) app (without PHP errors or warnings)
+A bash script to install [any WordPress version](https://wordpress.org/download/release-archive/) in the [Local by Flywheel](https://local.getflywheel.com/) app.
 
-This is a converted version for the Local app of the VVV auto site script [WP Nostalgia](https://github.com/keesiemeijer/wp-nostalgia).
+This is a converted [WP Nostalgia](https://github.com/keesiemeijer/wp-nostalgia) version for the Local by Flywheel app.
 
-**Note**: Keep in mind this script is intended to create fresh new WordPress installs, not to update websites. (You can use [WP-CLI](http://wp-cli.org/) for that).
+**Note**: Keep in mind this script is intended to create fresh new WordPress installs, not to update websites. (Use [WP-CLI](http://wp-cli.org/) for that).
 
 Features:
 
 * Ability to keep the `wp-content` folder between versions.
 * WP-CLI is used to install WP versions > 3.5.2
 * All other WP versions are installed by this script.
-* To be able to install very early versions of WordPress this script fixes PHP errors by:
+* To install very early versions of WordPress this script fixes PHP errors by:
     * Hacking WP core files for WP versions < 2.0
     * Setting error_reporting off in:
         * wp-config.php (WP < 3.5.2)
@@ -22,7 +22,7 @@ Features:
 **Note**: Don't use this script for production sites.
 
 ## PHP compatibility
-Not all errors can be fixed (by a script) for the earlier WP versions (on newer PHP environments). Here's an overview of what PHP versions you can use to install WordPress successfully with this script.
+Not all PHP errors and warnings can be fixed for earlier WP versions (on newer PHP environments). Here's an overview of what PHP versions you'll have to use to install WordPress successfully with this script.
 
 * WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)(Will be fixed in WP)
 * WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error - missing MySQL extension)
@@ -34,7 +34,7 @@ You can set the PHP version in the Local app.
 
 * rsync
 
-To sync the `wp-content` folder between installations rsync is required. If it's not installed, right click the site name in the Local app and choose `Open Site SSH`. A new terminal window will open where you can install it.
+To sync the `wp-content` folder between installations `rsync` is required. If it's not installed, right click the site name in the Local app and choose `Open Site SSH`. A new terminal window will open where you can install it.
 
 ```bash
 # Update packages
@@ -43,10 +43,11 @@ apt-get update
 # Install rsync
 apt-get install -y rsync
 ```
+
 ## Your content
 The database and WordPress folder (`public`), ***except the `wp-content` folder***, are deleted before installing a new WP version. Make a backup of any files and directories you want to keep (inside the `public`folder) before installing new WordPress versions with this script.
 
-The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version. After a successful install it's synced back and removed. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
+The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version. After a successful install it's synced back (with [rsync](#Requirements)) and deleted. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
 
 ## Installation
 To install this script go to the website's /app folder
