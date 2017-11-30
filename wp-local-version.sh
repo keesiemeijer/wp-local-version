@@ -353,7 +353,7 @@ if [[ "$KEEP_WP_CONTENT" = true ]]; then
 
 			printf "Finished synchronizing.\n"
 			if [[ $KEEP_WP_CONTENT_BACKUP = false ]]; then
-				printf "Removing back up of wp-content directory in %s.\n" "$TEMP_DIR/wp-content"
+				printf "Removing wp-content backup in directory %s.\n" "$TEMP_DIR/wp-content"
 				rm -rf "$TEMP_DIR/wp-content"
 			fi
 		fi
