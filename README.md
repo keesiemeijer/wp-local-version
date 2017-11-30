@@ -22,10 +22,10 @@ Features:
 **Note**: Don't use this script for production sites.
 
 ## PHP compatibility
-Not all errors can be fixed (by a script) for the earlier WP versions on newer PHP environments. You have to pay attention what version of PHP is used with the WP version you install. Here's an overview of what PHP versions you can use to install WordPress successfully with this script.
+Not all errors can be fixed (by a script) for the earlier WP versions (on newer PHP environments). Here's an overview of what PHP versions you can use to install WordPress successfully with this script.
 
 * WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)(Will be fixed in WP)
-* WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error)(missing MySQL extension)
+* WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error - missing MySQL extension)
 
 If you don't want this script to fix PHP errors set the `REMOVE_ERRORS` [variable](#variables) in this script to false.
 
@@ -44,9 +44,9 @@ apt-get update
 apt-get install -y rsync
 ```
 ## Your content
-The database and WordPress folder (`public`), ***except the `wp-content` folder***, are deleted before installing a new WP version. Make a backup for any files and directories you want to keep (outside of `wp-content`) before installing new WordPress versions.
+The database and WordPress folder (`public`), ***except the `wp-content` folder***, are deleted before installing a new WP version. Make a backup of any files and directories you want to keep (inside the `public`folder) before installing new WordPress versions with this script.
 
-The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version and removed after. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
+The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version. After a successful install it's synced back and removed. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
 
 ## Installation
 To install this script go to the website's /app folder
@@ -63,7 +63,7 @@ curl -o wp-local-version.sh https://raw.githubusercontent.com/keesiemeijer/wp-lo
 And **edit the variables** in the `wp-local-version.sh` script to match your site ([see below](#variables)).
 
 ## Variables
-Change the variables in the `wp-local-version.sh` file to match your site before installing new WordPress versions.
+Change the site variables in the `wp-local-version.sh` file to match your site before installing new WordPress versions with this script.
 
 **Note** It's important to edit the `DOMAIN` and `database` variables otherwise you probably can't visit the site after installing a new WP version.
 
