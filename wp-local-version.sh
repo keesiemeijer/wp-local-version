@@ -90,13 +90,13 @@
 
 # =============================================================================
 # Variables
-# Edit these variables to match your site.
+# Edit the Site variables to match your site.
 #
 # Note: Don't use spaces around the equal sign when editing variables below.
 # =============================================================================
 
 # ********* Site variables *********
-#
+
 # Domain name
 readonly DOMAIN="yourwebsite.local"
 
@@ -121,7 +121,7 @@ readonly KEEP_WP_CONTENT=true
 
 # Keep the wp-content folder backup after successfully installing a new WordPress version.
 #
-# Set it to false to remove the backup after a new WP install.
+# Set it to true to keep the backup after a new WP install. Default false
 # (It is only removed if rsync returns with a successful exit status) 
 readonly KEEP_WP_CONTENT_BACKUP=false
 
