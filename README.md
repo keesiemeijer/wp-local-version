@@ -47,7 +47,7 @@ apt-get install -y rsync
 ## Your content
 The database and WordPress folder (`public`), ***except the `wp-content` folder***, are deleted before installing a new WP version. Make a backup of any files and directories you want to keep (inside the `public`folder) before installing new WordPress versions with this script.
 
-The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version. After a successful install it's synced back (with [rsync](#Requirements)) and deleted. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
+The `wp-content` folder is backed up in `/tmp/wp-local-version/wp-content` before installing a new WP version. After a successful install it's synced back (with [rsync](#requirements)) and deleted. If you want to keep the backup (after a new install) set the `KEEP_WP_CONTENT_BACKUP` [variable](#variables) in this script to true.
 
 ## Installation
 To install this script go to the website's /app folder
