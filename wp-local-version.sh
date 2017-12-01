@@ -98,7 +98,7 @@
 # ********* Site variables *********
 
 # Domain name
-readonly DOMAIN="test.dev"
+readonly DOMAIN="yourwebsite.local"
 
 # Database credentials
 readonly DB_NAME="local"
