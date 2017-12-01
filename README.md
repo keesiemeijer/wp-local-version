@@ -4,7 +4,7 @@ Version 2.0.0
 
 A bash script to install [any WordPress version](https://wordpress.org/download/release-archive/) in the [Local by Flywheel](https://local.getflywheel.com/) app.
 
-This is a converted [WP Nostalgia](https://github.com/keesiemeijer/wp-nostalgia) version for the Local by Flywheel app.
+This script is based on the [WP Nostalgia](https://github.com/keesiemeijer/wp-nostalgia) script for VVV
 
 **Note**: Keep in mind this script is intended to create fresh new WordPress installs, not to update websites. (Use [WP-CLI](http://wp-cli.org/) for that).
 
