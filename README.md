@@ -22,10 +22,12 @@ Features:
 **Note**: Don't use this script for production sites.
 
 ## PHP compatibility
-Not all PHP errors and warnings can be fixed for earlier WP versions (on newer PHP environments). Here's an overview of what PHP versions you'll have to use to install WordPress successfully with this script.
+Not all PHP errors and warnings can be fixed for earlier WP versions (on newer PHP environments). Here's an overview of what PHP versions you'll have to use to install older WordPress versions successfully with this script.
 
-* WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)(Will be fixed in WP)
+* WordPress < 4.7 needs PHP 7.0.3 or lower (or you get a warning)
 * WordPress < 3.9 needs PHP 5.3 or lower (or you get a fatal error - missing MySQL extension)
+
+Change the PHP version in the Local by Flywheel app for the WP versions above.
 
 If you don't want this script to fix PHP errors set the `REMOVE_ERRORS` [variable](#variables) in this script to false.
 
@@ -34,15 +36,7 @@ You can set the PHP version in the Local app.
 
 * rsync
 
-To sync the `wp-content` folder between installations `rsync` is required. If it's not installed, right click the site name in the Local app and choose `Open Site SSH`. A new terminal window will open where you can install it.
-
-```bash
-# Update packages
-apt-get update
-
-# Install rsync
-apt-get install -y rsync
-```
+To sync the `wp-content` folder between installations `rsync` is required. It's installed by this script the first time you run it (if it's not installed yet).
 
 ## Your content
 The database and WordPress folder (`public`), ***except the `wp-content` folder***, are deleted before installing a new WP version. Make a backup of any files and directories you want to keep (inside the `public`folder) before installing new WordPress versions with this script.
