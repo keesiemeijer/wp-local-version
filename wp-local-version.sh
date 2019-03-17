@@ -28,14 +28,8 @@
 #
 #     rsync
 #
-# To sync the wp-content folder between installations rsync is required..
-# If it's not installed already, right click the site and choose Open Site SSH.
-# 
-# Update packages
-#   apt-get update
-# 
-# Install rsync
-#   apt-get install -y rsync
+# To sync the `wp-content` folder between installations `rsync` is required.
+# It's installed by this script the first time you run it (if it's not installed yet).
 #
 # ********* Warning !!! *********
 #
@@ -178,7 +172,18 @@ function abort(){
 if [[ "$KEEP_WP_CONTENT" = true ]]; then
 	# Check if rsync exists
 	if ! command -v rsync &> /dev/null; then
-		abort "Please install rsync first\n"
+		printf "Installing rsync. This can take some time...\n\n"
+
+		apt-get update
+		apt-get install -y rsync
+
+		if ! is_file "/usr/bin/rsync"; then
+			printf "Could not install rsync.\n"
+			printf "Make sure you are connected to the internet.\n"
+			exit 1
+		fi
+
+		printf "Finished installing rsync.\n\n"
 	fi
 fi
 
@@ -198,22 +203,6 @@ if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
 fi
 
 printf "\nStart installing a new Wordpress version for '%s'...\n" "$DOMAIN"
-
-# =============================================================================
-# Check Network Detection
-#
-# Make an HTTP request to google.com to determine if outside access is available
-# to us. If 3 attempts with a timeout of 5 seconds are not successful, then we'll
-# skip a few things further in provisioning rather than create a bunch of errors.
-# =============================================================================
-printf "Checking network connection...\n"
-if ping -c 3 --linger=5 8.8.8.8 >> /dev/null 2>&1; then
-	printf "Network connection detected.\n"
-	printf "Downloading WordPress %s in %s...\n" "$WP_VERSION" "$TEMP_DIR/wordpress"
-else
-	printf "No network connection detected.\n"
-	printf "Trying to get WordPress %s from cache...\n" "$WP_VERSION"
-fi
 
 if is_dir "$TEMP_DIR/wordpress"; then
 	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress\n"
@@ -279,10 +268,15 @@ rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove $TEMP_DIR/wordpress dire
 # Deleting database
 # =============================================================================
 
+# Suppress password warnings. It silly I know :-)
+printf "[client]\npassword=root\nuser=root" > "$TEMP_DIR/my.cnf"
+
 printf "Resetting database '%s'...\n" "$DB_NAME"
-mysql -u root --password=root -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
-mysql -u root --password=root -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`"
-mysql -u root --password=root -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO $DB_USER@localhost IDENTIFIED BY '$DB_PASS';"
+mysql --defaults-file="$TEMP_DIR/my.cnf" -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
+mysql --defaults-file="$TEMP_DIR/my.cnf" -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`"
+mysql --defaults-file="$TEMP_DIR/my.cnf" -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO $DB_USER@localhost IDENTIFIED BY '$DB_PASS';"
+
+rm "$TEMP_DIR/my.cnf"
 
 readonly TITLE="Wordpress $WP_VERSION"
 readonly WP_VERSION="$WP_VERSION"
@@ -377,7 +371,7 @@ fi
 # =============================================================================
 
 if [[ "$REMOVE_ERRORS" = true && "$config_error" ]]; then
-	echo "Removing errors"
+	echo "Removing errors. This can take some time..."
 
 	# Blank admin screen WP version 3.3.*
 	if [[ ${WP_VERSION:0:3} == "3.3" ]]; then
