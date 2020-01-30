@@ -103,6 +103,21 @@ readonly DB_PASS="root"
 readonly WP_USER="admin"
 readonly WP_PASS="password"
 
+# ********* Type of install *********
+
+# Install single or multisite WordPress.
+# Default false (install single WordPress install)
+readonly WP_NETWORK=false
+
+# If set to true the network will use subdomains, instead of subdirectories.
+# Subdomains don’t work with ‘localhost’.
+# Default false (use subdirectories install)
+readonly WP_NETWORK_SUBDOMAINS=false
+
+#Base path after the domain name that each site url in the network will start with.
+#Default: '/'
+readonly WP_NETWORK_BASE='/'
+
 # ********* Script variables *********
 
 # Remove errors. Default true
@@ -291,9 +306,19 @@ config_error=$(wp core config --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_P
 
 if [[ ! "$config_error" ]]; then
 	# WP >= 3.5.2
+	if [[ "$WP_NETWORK" = true && "$WP_NETWORK_SUBDOMAINS" = true ]]; then
+		wp core multisite-install --url="$DOMAIN" --base="$WP_NETWORK_BASE" --subdomains --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
+		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
+		finished+=" Don't forget to set up rewrite rules for the network (and a .htaccess file, if using Apache)."
+	elif [[ "$WP_NETWORK" = true ]]; then
+		wp core multisite-install --url="$DOMAIN" --base="$WP_NETWORK_BASE" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
+		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
+		finished+=" Don't forget to set up rewrite rules for the network (and a .htaccess file, if using Apache)."
+	else
+		wp core install --url="$DOMAIN" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
+		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password"
+	fi
 
-	wp core install --url="$DOMAIN" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
-	finished="Visit $DOMAIN/wp-admin Username: admin, Password: password"
 else
 	# WP < 3.5.2
 
