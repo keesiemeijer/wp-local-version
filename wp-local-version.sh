@@ -110,7 +110,6 @@ readonly WP_PASS="password"
 readonly WP_NETWORK=false
 
 # If set to true the network will use subdomains, instead of subdirectories.
-# Subdomains don’t work with ‘localhost’.
 # Default false (use subdirectories install)
 readonly WP_NETWORK_SUBDOMAINS=false
 
