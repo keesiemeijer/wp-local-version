@@ -309,11 +309,10 @@ if [[ ! "$config_error" ]]; then
 	if [[ "$WP_NETWORK" = true && "$WP_NETWORK_SUBDOMAINS" = true ]]; then
 		wp core multisite-install --url="$DOMAIN" --base="$WP_NETWORK_BASE" --subdomains --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
 		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
-		finished+=" Don't forget to set up rewrite rules for the network (and a .htaccess file, if using Apache)."
+		finished+=" When adding new subdomains click 'Sync Multi-Site Domains to Hosts File' in the Local by Flywheel app"
 	elif [[ "$WP_NETWORK" = true ]]; then
 		wp core multisite-install --url="$DOMAIN" --base="$WP_NETWORK_BASE" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
 		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
-		finished+=" Don't forget to set up rewrite rules for the network (and a .htaccess file, if using Apache)."
 	else
 		wp core install --url="$DOMAIN" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
 		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password"
