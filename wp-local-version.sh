@@ -151,9 +151,6 @@ WP_VERSION="latest"
 # current path
 readonly CURRENT_PATH=$(pwd)
 
-# DocumentRoot dir in .conf file (if server is Apache)
-readonly CURRENT_DIR="${PWD##*/}"
-
 # path to the WordPress install for the developer reference website
 readonly INSTALL_PATH="$CURRENT_PATH/public"
 
@@ -177,7 +174,7 @@ function abort(){
 	local msg=$1
 	printf "Stopped installing WordPress\n"
 	if [[ -n "$msg" ]]; then
-		printf "$msg"
+		printf "%s\n" "$msg"
 	fi
 
 	exit 1
@@ -219,12 +216,12 @@ fi
 printf "\nStart installing a new WordPress version for '%s'...\n" "$DOMAIN"
 
 if is_dir "$TEMP_DIR/wordpress"; then
-	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress\n"
+	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress"
 fi
 
-mkdir -p "$TEMP_DIR/wordpress" || abort "Could not create directory $TEMP_DIR/wordpress\n"
+mkdir -p "$TEMP_DIR/wordpress" || abort "Could not create directory $TEMP_DIR/wordpress"
 
-if ! [[ -z "${LOCALE// }" ]]; then
+if [[ -n "${LOCALE// }" ]]; then
 	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --locale="${LOCALE// }" --force --allow-root 2> /dev/null
 else
 	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --force --allow-root 2> /dev/null
@@ -235,7 +232,7 @@ if ! { is_file "$TEMP_DIR/wordpress/wp-config-sample.php" || is_file "$TEMP_DIR/
 	printf "Could not install WordPress.\n"
 	printf "Use a valid WordPress version.\n"
 	printf "And make sure you are connected to the internet.\n"
-	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress\n"
+	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress"
 	exit 1
 fi
 
@@ -253,37 +250,37 @@ fi
 
 if ! is_dir "$INSTALL_PATH"; then
 	printf "Creating directory %s...\n" "$INSTALL_PATH"
-	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory\n"
+	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory"
 else 
 	if is_dir "$INSTALL_PATH/wp-content" && [[ "$KEEP_WP_CONTENT" = true ]]; then
 		printf "Backing up wp-content directory in %s\n" "$TEMP_DIR/wp-content"
 		printf "This can take some time...\n"
 		if is_dir "$TEMP_DIR/wp-content"; then
-			rm -rf "$TEMP_DIR/wp-content" || abort "Could not create $TEMP_DIR/wp-content directory\n"
+			rm -rf "$TEMP_DIR/wp-content" || abort "Could not create $TEMP_DIR/wp-content directory"
 		fi
 
-		mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content" || abort "Could not move $INSTALL_PATH/wp-content directory\n"
+		mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content" || abort "Could not move $INSTALL_PATH/wp-content directory"
 	fi
 
 	printf "Deleting directory %s...\n" "$INSTALL_PATH"
-	rm -rf "$INSTALL_PATH" || abort "Could not delete $INSTALL_PATH directory\n"
-	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory\n"
+	rm -rf "$INSTALL_PATH" || abort "Could not delete $INSTALL_PATH directory"
+	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory"
 fi
 
-cd "$INSTALL_PATH" || abort "Could not go to directory $INSTALL_PATH\n"
+cd "$INSTALL_PATH" || abort "Could not go to directory $INSTALL_PATH"
 
 printf "Moving WordPress files to %s...\n" "$INSTALL_PATH"
-mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || abort "Could not move WordPress to $INSTALL_PATH\n"
+mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || abort "Could not move WordPress to $INSTALL_PATH"
 
 # Clean up temp WordPress directory
-rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove $TEMP_DIR/wordpress directory\n"
+rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove $TEMP_DIR/wordpress directory"
 
 # =============================================================================
 # Deleting database
 # =============================================================================
 
 # Suppress password warnings. It silly I know :-)
-printf "[client]\npassword=root\nuser=root" > "$TEMP_DIR/my.cnf"
+printf "[client]\npassword=%s\nuser=%s" "$DB_PASS" "$DB_USER" > "$TEMP_DIR/my.cnf"
 
 printf "Resetting database '%s'...\n" "$DB_NAME"
 mysql --defaults-file="$TEMP_DIR/my.cnf" -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
@@ -383,7 +380,7 @@ if [[ "$KEEP_WP_CONTENT" = true ]]; then
 			printf "Finished synchronizing.\n"
 			if [[ $KEEP_WP_CONTENT_BACKUP = false ]]; then
 				printf "Removing wp-content backup in directory %s.\n" "$TEMP_DIR/wp-content"
-				rm -rf "$TEMP_DIR/wp-content" || abort "Could not remove $TEMP_DIR/wp-content directory\n"
+				rm -rf "$TEMP_DIR/wp-content" || abort "Could not remove $TEMP_DIR/wp-content directory"
 			fi
 		fi
 	fi
