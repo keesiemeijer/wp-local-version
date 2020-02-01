@@ -99,7 +99,7 @@ readonly DB_NAME="local"
 readonly DB_USER="root"
 readonly DB_PASS="root"
 
-# Wordpress credentials
+# WordPress credentials
 readonly WP_USER="admin"
 readonly WP_PASS="password"
 
@@ -113,8 +113,8 @@ readonly WP_NETWORK=false
 # Default false (use subdirectories install)
 readonly WP_NETWORK_SUBDOMAINS=false
 
-#Base path after the domain name that each site url in the network will start with.
-#Default: '/'
+# Base path after the domain name that each site url in the network will start with.
+# Default: '/'
 readonly WP_NETWORK_BASE='/'
 
 # ********* Script variables *********
@@ -175,7 +175,7 @@ function is_dir() {
 
 function abort(){
 	local msg=$1
-	printf "Stopped installing Wordpress\n"
+	printf "Stopped installing WordPress\n"
 	if [[ -n "$msg" ]]; then
 		printf "$msg"
 	fi
@@ -216,7 +216,7 @@ if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
 	exit 0
 fi
 
-printf "\nStart installing a new Wordpress version for '%s'...\n" "$DOMAIN"
+printf "\nStart installing a new WordPress version for '%s'...\n" "$DOMAIN"
 
 if is_dir "$TEMP_DIR/wordpress"; then
 	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress\n"
@@ -292,7 +292,7 @@ mysql --defaults-file="$TEMP_DIR/my.cnf" -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\
 
 rm "$TEMP_DIR/my.cnf"
 
-readonly TITLE="Wordpress $WP_VERSION"
+readonly TITLE="WordPress $WP_VERSION"
 readonly WP_VERSION="$WP_VERSION"
 
 # =============================================================================
