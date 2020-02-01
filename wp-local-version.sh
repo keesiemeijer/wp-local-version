@@ -99,9 +99,23 @@ readonly DB_NAME="local"
 readonly DB_USER="root"
 readonly DB_PASS="root"
 
-# Wordpress credentials
+# WordPress credentials
 readonly WP_USER="admin"
 readonly WP_PASS="password"
+
+# ********* Type of install *********
+
+# Install single or multisite WordPress.
+# Default false (install single WordPress install)
+readonly WP_NETWORK=false
+
+# If set to true the network will use subdomains, instead of subdirectories.
+# Default false (use subdirectories install)
+readonly WP_NETWORK_SUBDOMAINS=false
+
+# Base path after the domain name that each site url in the network will start with.
+# Default: '/'
+readonly WP_NETWORK_BASE='/'
 
 # ********* Script variables *********
 
@@ -137,9 +151,6 @@ WP_VERSION="latest"
 # current path
 readonly CURRENT_PATH=$(pwd)
 
-# DocumentRoot dir in .conf file (if server is Apache)
-readonly CURRENT_DIR="${PWD##*/}"
-
 # path to the WordPress install for the developer reference website
 readonly INSTALL_PATH="$CURRENT_PATH/public"
 
@@ -161,9 +172,9 @@ function is_dir() {
 
 function abort(){
 	local msg=$1
-	printf "Stopped installing Wordpress\n"
+	printf "Stopped installing WordPress\n"
 	if [[ -n "$msg" ]]; then
-		printf "$msg"
+		printf "%s\n" "$msg"
 	fi
 
 	exit 1
@@ -202,15 +213,15 @@ if ! [[ $REPLY = "Y" ||  $REPLY = "y" ]]; then
 	exit 0
 fi
 
-printf "\nStart installing a new Wordpress version for '%s'...\n" "$DOMAIN"
+printf "\nStart installing a new WordPress version for '%s'...\n" "$DOMAIN"
 
 if is_dir "$TEMP_DIR/wordpress"; then
-	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress\n"
+	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress"
 fi
 
-mkdir -p "$TEMP_DIR/wordpress" || abort "Could not create directory $TEMP_DIR/wordpress\n"
+mkdir -p "$TEMP_DIR/wordpress" || abort "Could not create directory $TEMP_DIR/wordpress"
 
-if ! [[ -z "${LOCALE// }" ]]; then
+if [[ -n "${LOCALE// }" ]]; then
 	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --locale="${LOCALE// }" --force --allow-root 2> /dev/null
 else
 	wp core download --version="$WP_VERSION" --path="$TEMP_DIR/wordpress" --force --allow-root 2> /dev/null
@@ -221,7 +232,7 @@ if ! { is_file "$TEMP_DIR/wordpress/wp-config-sample.php" || is_file "$TEMP_DIR/
 	printf "Could not install WordPress.\n"
 	printf "Use a valid WordPress version.\n"
 	printf "And make sure you are connected to the internet.\n"
-	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress\n"
+	rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove directory $TEMP_DIR/wordpress"
 	exit 1
 fi
 
@@ -239,37 +250,37 @@ fi
 
 if ! is_dir "$INSTALL_PATH"; then
 	printf "Creating directory %s...\n" "$INSTALL_PATH"
-	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory\n"
+	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory"
 else 
 	if is_dir "$INSTALL_PATH/wp-content" && [[ "$KEEP_WP_CONTENT" = true ]]; then
 		printf "Backing up wp-content directory in %s\n" "$TEMP_DIR/wp-content"
 		printf "This can take some time...\n"
 		if is_dir "$TEMP_DIR/wp-content"; then
-			rm -rf "$TEMP_DIR/wp-content" || abort "Could not create $TEMP_DIR/wp-content directory\n"
+			rm -rf "$TEMP_DIR/wp-content" || abort "Could not create $TEMP_DIR/wp-content directory"
 		fi
 
-		mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content" || abort "Could not move $INSTALL_PATH/wp-content directory\n"
+		mv "$INSTALL_PATH/wp-content" "$TEMP_DIR/wp-content" || abort "Could not move $INSTALL_PATH/wp-content directory"
 	fi
 
 	printf "Deleting directory %s...\n" "$INSTALL_PATH"
-	rm -rf "$INSTALL_PATH" || abort "Could not delete $INSTALL_PATH directory\n"
-	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory\n"
+	rm -rf "$INSTALL_PATH" || abort "Could not delete $INSTALL_PATH directory"
+	mkdir "$INSTALL_PATH" || abort "Could not create $INSTALL_PATH directory"
 fi
 
-cd "$INSTALL_PATH" || abort "Could not go to directory $INSTALL_PATH\n"
+cd "$INSTALL_PATH" || abort "Could not go to directory $INSTALL_PATH"
 
 printf "Moving WordPress files to %s...\n" "$INSTALL_PATH"
-mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || abort "Could not move WordPress to $INSTALL_PATH\n"
+mv "$TEMP_DIR/wordpress/"* "$INSTALL_PATH" || abort "Could not move WordPress to $INSTALL_PATH"
 
 # Clean up temp WordPress directory
-rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove $TEMP_DIR/wordpress directory\n"
+rm -rf "$TEMP_DIR/wordpress" || abort "Could not remove $TEMP_DIR/wordpress directory"
 
 # =============================================================================
 # Deleting database
 # =============================================================================
 
 # Suppress password warnings. It silly I know :-)
-printf "[client]\npassword=root\nuser=root" > "$TEMP_DIR/my.cnf"
+printf "[client]\npassword=%s\nuser=%s" "$DB_PASS" "$DB_USER" > "$TEMP_DIR/my.cnf"
 
 printf "Resetting database '%s'...\n" "$DB_NAME"
 mysql --defaults-file="$TEMP_DIR/my.cnf" -e "DROP DATABASE IF EXISTS \`$DB_NAME\`"
@@ -278,7 +289,7 @@ mysql --defaults-file="$TEMP_DIR/my.cnf" -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\
 
 rm "$TEMP_DIR/my.cnf"
 
-readonly TITLE="Wordpress $WP_VERSION"
+readonly TITLE="WordPress $WP_VERSION"
 readonly WP_VERSION="$WP_VERSION"
 
 # =============================================================================
@@ -291,9 +302,18 @@ config_error=$(wp core config --dbname=$DB_NAME --dbuser=$DB_USER --dbpass=$DB_P
 
 if [[ ! "$config_error" ]]; then
 	# WP >= 3.5.2
+	if [[ "$WP_NETWORK" = true && "$WP_NETWORK_SUBDOMAINS" = true ]]; then
+		wp core multisite-install --url="$DOMAIN" --base="$WP_NETWORK_BASE" --subdomains --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
+		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
+		finished+=" When adding new subdomains click 'Sync Multi-Site Domains to Hosts File' in the Local by Flywheel app."
+	elif [[ "$WP_NETWORK" = true ]]; then
+		wp core multisite-install --url="$DOMAIN" --base="$WP_NETWORK_BASE" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
+		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
+	else
+		wp core install --url="$DOMAIN" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
+		finished="Visit $DOMAIN/wp-admin Username: admin, Password: password."
+	fi
 
-	wp core install --url="$DOMAIN" --title="$TITLE" --admin_user="$WP_USER" --admin_password="$WP_PASS" --admin_email=demo@example.com --allow-root
-	finished="Visit $DOMAIN/wp-admin Username: admin, Password: password"
 else
 	# WP < 3.5.2
 
@@ -360,7 +380,7 @@ if [[ "$KEEP_WP_CONTENT" = true ]]; then
 			printf "Finished synchronizing.\n"
 			if [[ $KEEP_WP_CONTENT_BACKUP = false ]]; then
 				printf "Removing wp-content backup in directory %s.\n" "$TEMP_DIR/wp-content"
-				rm -rf "$TEMP_DIR/wp-content" || abort "Could not remove $TEMP_DIR/wp-content directory\n"
+				rm -rf "$TEMP_DIR/wp-content" || abort "Could not remove $TEMP_DIR/wp-content directory"
 			fi
 		fi
 	fi
