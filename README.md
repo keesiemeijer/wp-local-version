@@ -101,7 +101,7 @@ readonly DB_NAME="local"
 readonly DB_USER="root"
 readonly DB_PASS="root"
 
-# Wordpress credentials
+# WordPress credentials
 readonly WP_USER="admin"
 readonly WP_PASS="password"
 
@@ -112,12 +112,11 @@ readonly WP_PASS="password"
 readonly WP_NETWORK=false
 
 # If set to true the network will use subdomains, instead of subdirectories.
-# Subdomains don’t work with ‘localhost’.
 # Default false (use subdirectories install)
 readonly WP_NETWORK_SUBDOMAINS=false
 
-#Base path after the domain name that each site url in the network will start with.
-#Default: '/'
+# Base path after the domain name that each site url in the network will start with.
+# Default: '/'
 readonly WP_NETWORK_BASE='/'
 
 # ********* Script variables *********
