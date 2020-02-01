@@ -29,6 +29,8 @@ Not all PHP errors and warnings can be fixed for earlier WP versions (on newer P
 
 Change the PHP version in the Local by Flywheel app for the WP versions above.
 
+**Note**: For PHP 5.3 you also need to install [WP CLI 1.5.1](https://github.com/wp-cli/wp-cli/releases/tag/v1.5.1). 
+
 If you don't want this script to fix PHP errors set the `REMOVE_ERRORS` [variable](#variables) in this script to false.
 
 You can set the PHP version in the Local app.
